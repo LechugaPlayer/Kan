@@ -1,0 +1,40 @@
+# clang-tidy checks for a CPU renderer: correctness first, then hot-loop hygiene.
+# Used both by clangd (in-editor diagnostics) and by scripts/check.ps1.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  clang-analyzer-*,
+  misc-*,
+  modernize-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  -misc-use-anonymous-namespace,
+  -misc-use-internal-linkage,
+  -modernize-use-trailing-return-type,
+  -portability-avoid-pragma-once,
+  -readability-math-missing-parentheses,
+  -modernize-use-designated-initializers,
+  -modernize-use-std-print,
+  -readability-else-after-return,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-identifier-naming,
+  -readability-magic-numbers,
+  -readability-uppercase-literal-suffix,
+  -cppcoreguidelines-*
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '(src|includes)[/\\].*\.(hpp|h|cpp)$'
+FormatStyle: file
+SystemHeaders: false
+
+CheckOptions:
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'Vec2;Vec3'
+  - key: readability-suspicious-call-argument.PrefixSimilarAbove
+    value: '40'

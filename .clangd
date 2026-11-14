@@ -1,0 +1,41 @@
+# clangd configuration (helix / any LSP client).
+#
+# compile_commands.json is committed and is the source of truth for the TUs it
+# lists. This file pins the compiler, and supplies the same strict warning set
+# to files the database does not cover (headers opened directly).
+CompileFlags:
+  CompilationDatabase: .
+  # Pin the MSYS2 clang++ so the target triple and the C++ standard library
+  # search paths match the compiler that actually builds the project.
+  # Use C:/msys64/mingw64/bin/clangd.exe (same install) or pass
+  # --query-driver=C:/msys64/mingw64/bin/* to a different clangd build.
+  Compiler: C:/msys64/mingw64/bin/clang++
+  Add:
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+    - -Wconversion
+    - -Wsign-conversion
+    - -Wshadow
+    - -Wnon-virtual-dtor
+    - -Woverloaded-virtual
+    - -Wold-style-cast
+    - -Wcast-align
+    - -Wdouble-promotion
+    - -Wimplicit-fallthrough
+    - -Wnull-dereference
+    - -I.
+    - -Isrc/utils
+    - -Iincludes/Lin/src
+  Remove:
+    # warnings must never become editor errors, and sanitizers belong to the
+    # check script, not to the index
+    - -Werror
+    - -fsanitize=*
+
+Diagnostics:
+  ClangTidy:
+    # run every check configured in .clang-tidy, not just the "fast" subset
+    FastCheckFilter: Loose
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
