@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <limits>
 
 struct Vec2{
   float x;
@@ -30,14 +31,22 @@ struct Vec2{
     return v * s;
   }
 
-  // component-wise divide; components whose divisor is ~0 yield 0 instead of
-  // inf/NaN, so a degenerate divisor can never propagate
   [[nodiscard]] Vec2 operator/(const Vec2& v) const{
-    return {safe_div(x, v.x), safe_div(y, v.y)};
+    return {x / v.x, y / v.y};
   }
 
   [[nodiscard]] Vec2 operator/(float s) const{
-    return {safe_div(x, s), safe_div(y, s)};
+    return {x / s, y / s};
+  }
+
+  // Zeroes components whose divisor magnitude is at most eps.
+  // The caller supplies a nonnegative tolerance.
+  [[nodiscard]] Vec2 safe_divide(const Vec2& v, float eps) const{
+    return {safe_div(x, v.x, eps), safe_div(y, v.y, eps)};
+  }
+
+  [[nodiscard]] Vec2 safe_divide(float s, float eps) const{
+    return std::abs(s) > eps ? Vec2{x / s, y / s} : Vec2{};
   }
 
   // exact comparison; use approx_equal() for a tolerance test
@@ -60,14 +69,23 @@ struct Vec2{
   }
 
   [[nodiscard]] float len() const{
-    return std::sqrt(dot(*this));
+    const double l = wide_length();
+    return l > static_cast<double>(std::numeric_limits<float>::max())
+        ? std::numeric_limits<float>::infinity()
+        : static_cast<float>(l);
   }
 
   // returns *this unchanged when the length is not above eps, so a zero (or
   // near-zero) vector never produces inf/NaN
   [[nodiscard]] Vec2 normalized(float eps = 0.00000001f) const{
-    const float l = len();
-    return l > eps ? *this * (1.0f / l) : *this;
+    const double l = wide_length();
+    if (!(l > static_cast<double>(eps))) {
+      return *this;
+    }
+    return {
+      static_cast<float>(static_cast<double>(x) / l),
+      static_cast<float>(static_cast<double>(y) / l)
+    };
   }
 
   static float safe_div(float num, float den, float eps = 0.0001f){
@@ -85,5 +103,12 @@ struct Vec2{
     result.x = apply_deadzone(x, eps);
     result.y = apply_deadzone(y, eps);
     return result;
+  }
+
+private:
+  [[nodiscard]] double wide_length() const{
+    const double dx = static_cast<double>(x);
+    const double dy = static_cast<double>(y);
+    return std::sqrt(dx * dx + dy * dy);
   }
 };
