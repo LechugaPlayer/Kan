@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 
@@ -8,19 +9,21 @@
 
 // 3x3 matrix, stored row-major: element (row, col) lives at m[row * 3 + col].
 // This is the linear part of a 4x4 transform (rotation/scale/shear, no
-// translation): it is also the matrix used to carry normals across a
-// non-uniform scale. Matrices are applied to column vectors, v' = M * v, with
-// right-handed rotations and angles in radians.
+// translation). Under non-uniform scale, transform normals with the inverse
+// transpose of the linear transform. Matrices are applied to column vectors,
+// v' = M * v, with right-handed rotations and angles in radians.
 struct Mat3{
   std::array<float, 9> m = {};
 
   static constexpr std::size_t Dim = 3;
 
   [[nodiscard]] float operator()(std::size_t row, std::size_t col) const{
+    assert(row < Dim && col < Dim);
     return m[row * Dim + col];
   }
 
   float& operator()(std::size_t row, std::size_t col){
+    assert(row < Dim && col < Dim);
     return m[row * Dim + col];
   }
 
@@ -105,7 +108,7 @@ struct Mat3{
 
   [[nodiscard]] bool approx_equal(const Mat3& b, float eps = 0.0001f) const{
     for (std::size_t i = 0; i < m.size(); i++) {
-      if (std::abs(m[i] - b.m[i]) >= eps) {
+      if (!(std::abs(m[i] - b.m[i]) < eps)) {
         return false;
       }
     }

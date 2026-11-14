@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 
@@ -15,10 +16,12 @@ struct Mat4{
   static constexpr std::size_t Dim = 4;
 
   [[nodiscard]] float operator()(std::size_t row, std::size_t col) const{
+    assert(row < Dim && col < Dim);
     return m[row * Dim + col];
   }
 
   float& operator()(std::size_t row, std::size_t col){
+    assert(row < Dim && col < Dim);
     return m[row * Dim + col];
   }
 
@@ -72,7 +75,7 @@ struct Mat4{
 
   // applies the upper 3x4 (affine) part to a point; the homogeneous w is
   // assumed to be 1, so this is not a perspective divide
-  [[nodiscard]] Vec3 transform(const Vec3& p) const{
+  [[nodiscard]] Vec3 transform_point(const Vec3& p) const{
     return {
       m[0] * p.x + m[1] * p.y + m[2]  * p.z + m[3],
       m[4] * p.x + m[5] * p.y + m[6]  * p.z + m[7],
@@ -112,7 +115,7 @@ struct Mat4{
 
   [[nodiscard]] bool approx_equal(const Mat4& b, float eps = 0.0001f) const{
     for (std::size_t i = 0; i < m.size(); i++) {
-      if (std::abs(m[i] - b.m[i]) >= eps) {
+      if (!(std::abs(m[i] - b.m[i]) < eps)) {
         return false;
       }
     }
